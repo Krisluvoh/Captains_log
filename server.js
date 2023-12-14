@@ -1,21 +1,23 @@
+// require dotenv so that I can use the .env fil
+require('dotenv').config();
 // Import required modules
 const express = require('express');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
-const moment = require('moment'); 
-
+const Log = require('./models/logs');
+const dayjs = require('dayjs');
 // Create an instance of the express application
 const app = express();
 
-
+const log = require('./models/log');
+app.engine('jsx', jsxViewEngine());
 
 app.get('/logs/new', (req, res) => {
     res.render('New');
 });
   
 app.get('/current-time', (req, res) => {
-    const currentTime = moment().format('MMMM Do YYYY, h:mm:ss a');
+    const currentTime = dayjs().format('MMMM Do YYYY, h:mm:ss a');
     res.render(`Current Time: ${currentTime}`);
 });
 
@@ -26,13 +28,22 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Configure method-override
 app.use(methodOverride('_method'));
 
+
+
+// Global configuration
+const mongoURI = process.env.MONGO_URI;
+const db = mongoose.connection;
+
+// Connect to MongoDB
+mongoose.connect(mongoURI);
+mongoose.connection.once('open', () => {
+    console.log('connected to mongo');
+})
+
 // Set up jsx view engine
 app.set('views', './views');
 app.set('view engine', 'jsx');
-app.engine('jsx', require('express-react-views').createEngine());
-
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/captains_log', { useNewUrlParser: true, useUnifiedTopology: true });
+app.engine('jsx', jsxViewEngine());
 
 // Create a new logs model
 const Log = mongoose.model('Log', {
@@ -51,8 +62,8 @@ const Log = mongoose.model('Log', {
 
 // Update a log (Update in the database)
 app.put('/logs/:id', async (req, res) => {
-    try {
-      await Log.findByIdAndUpdate(req.params.id, { ...req.body, updatedAt: moment() }); 
+  try {
+      await Log.findByIdAndUpdate(req.params.id, { ...req.body, updatedAt: dayjs() }); 
       res.redirect(`/logs/${req.params.id}`);
     } catch (error) {
       console.error(error);

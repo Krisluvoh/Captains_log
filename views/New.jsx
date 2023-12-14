@@ -1,5 +1,5 @@
 const React = require('react');
-const moment = require('moment');
+const dayjs = require('dayjs');
 
 class New extends React.Component {
   render() {
