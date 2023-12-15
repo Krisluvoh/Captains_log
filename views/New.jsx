@@ -7,7 +7,7 @@ class New extends React.Component {
       <div>
         <h1>Create a New Log</h1>
         <form action="/logs" method="POST">
-          <label>Title: </label>
+        <label>Title: </label> 
           <input type="text" name="title" /><br/>
           <label>Entry: </label>
           <textarea name="entry"></textarea><br/>
