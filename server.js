@@ -27,29 +27,14 @@ app.engine('jsx', jsxViewEngine());
 
 //=============================MIDDLEWARE===================================
 
+app.use((req, res, next) => {
+  console.log('Middleware: I run for all routes');
+  next();
+})
 
+//near the top, around other app.use() calls
+app.use(express.urlencoded({extended:false}));
 
-const dayjs = require('dayjs');
-// Create an instance of the express application
-const app = express();
-
-const log = require('./models/log');
-
-
-app.get('/logs/new', (req, res) => {
-    res.render('New');
-});
-  
-app.get('/current-time', (req, res) => {
-    const currentTime = dayjs().format('MMMM Do YYYY, h:mm:ss a');
-    res.render(`Current Time: ${currentTime}`);
-});
-
-
-// Configure body-parser
-app.use(bodyParser.urlencoded({ extended: true }));
-
-// Configure method-override
 app.use(methodOverride('_method'));
 
 // These are my routes
@@ -65,7 +50,86 @@ app.use(methodOverride('_method'));
 // E - Edit     GET         UPDATE * - but this allows user input
 // S - Show     GET         READ - display a specific element
 
-// I - INDEX - dsiplays a list of all fruits
+app.get('/', (req, res) => {
+  res.send('this is my logs root route');
+});
+
+// I - INDEX - dsiplays a list of all logs
+app.get('/logs/', async (req, res) => {
+  // res.send(logs);
+  try {
+    const foundLogs = await Log.find({});
+    res.status(200).render('logs/Index', {logs: foundLogs});
+  } catch (err) {
+    res.status(400).send(err);
+  }
+  
+});
+
+
+// N - NEW - allows a user to input a new log
+app.get('/logs/new', (req, res) => {
+  res.render('logs/New');
+});
+
+// D - DELETE - PERMANENTLY removes log from the database
+app.delete('/logs/:id', async (req, res) => {
+  // res.send('deleting...');
+  try {
+      const deletedLog = await Log.findByIdAndDelete(req.params.id);
+      console.log(deletedLog);
+      res.status(200).redirect('/logs');
+  } catch (err) {
+      res.status(400).send(err);
+  }
+})
+
+// U - UPDATE - makes the actual changes to the database based on the EDIT form
+app.put('/logs/:id', async (req, res) => {
+  if (req.body.readyToLog === 'on') {
+      req.body.readyToLog = true;
+  } else {
+      req.body.readyToLog = false;
+  }
+
+  try {
+      const updatedLog = await Log.findByIdAndUpdate(
+          req.params.id,
+          req.body,
+          { new: true },
+      );
+      console.log(updatedLog);
+      res.status(200).redirect(`/logs/${req.params.id}`);
+  } catch (err) {
+      res.status(400).send(err);
+  }
+})
+
+
+
+
+const dayjs = require('dayjs');
+// Create an instance of the express application
+const app = express();
+
+const log = require('./models/log');
+
+
+
+  
+app.get('/current-time', (req, res) => {
+    const currentTime = dayjs().format('MMMM Do YYYY, h:mm:ss a');
+    res.render(`Current Time: ${currentTime}`);
+});
+
+
+// Configure body-parser
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Configure method-override
+app.use(methodOverride('_method'));
+
+
 
 
 

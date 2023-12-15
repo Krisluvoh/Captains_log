@@ -5,19 +5,17 @@ class New extends React.Component {
   render() {
     return (
       <div>
-        <h1>Create a New Log</h1>
+        <h1>New Log page</h1>
+        {/* NOTE: action will be the route, method will be the HTTP verb */}
         <form action="/logs" method="POST">
-        <label>Title: </label> 
-          <input type="text" name="title" /><br/>
-          <label>Entry: </label>
-          <textarea name="entry"></textarea><br/>
-          <label>Ship is Broken: </label>
-          <input type="checkbox" name="shipIsBroken" /><br/>
-          <input type="submit" value="Create Log" />
-        </form>
-      </div>
-    );
-  }
-}
+       Name: <input type="title" name="name" /><br/>
+                 Title: <input type="text" name="title" /><br/>
+                 Entry: <input type="log" name="entry" /><br/>
+                 Is Broken: <input type="checkbox" name="shipIsBroken" /><br/>
+                 <input type="submit" name="" value="Create Log"/>
+               </form>
+           </div>);
+       }
+     }
 
-module.exports = New;
+   module.exports = New;
