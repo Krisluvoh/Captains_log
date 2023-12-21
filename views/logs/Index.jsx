@@ -16,7 +16,7 @@ class Index extends React.Component {
                 {logs.map((log, i) => {
                         return (
                             <li>
-                                The {' '}
+                                This {' '}
                                 <a href={`/logs/${log._id}`}>
                                     {log.name}
                                 </a> {' '}

@@ -1,13 +1,16 @@
 // require dotenv so that I can use the .env fil
 require('dotenv').config();
 const express = require('express');
+const jsxViewEngine = require('jsx-view-engine');
 // require mongoose so that I can connect to my db
 const mongoose = require('mongoose');
 const methodOverride = require('method-override');
 
+const dayjs = require('dayjs');
 const app = express();
 // const logs = require('./models/logs.js');
 // we want to import the log model
+const logsController = require('./controllers/logs');
 const Log = require('./models/logs');
 app.engine('jsx', jsxViewEngine());
 
@@ -32,10 +35,22 @@ app.use((req, res, next) => {
   next();
 })
 
+// Use the logsController for all routes related to logs
+app.use('/logs', logsController);
+
 //near the top, around other app.use() calls
 app.use(express.urlencoded({extended:false}));
 
+// Configure method-override
 app.use(methodOverride('_method'));
+
+// Configure body-parser
+
+
+
+
+
+
 
 // These are my routes
 // We are going to create the 7 RESTful routes
@@ -51,7 +66,7 @@ app.use(methodOverride('_method'));
 // S - Show     GET         READ - display a specific element
 
 app.get('/', (req, res) => {
-  res.send('this is my logs root route');
+  res.redirect('/logs');
 });
 
 // I - INDEX - dsiplays a list of all logs
@@ -105,66 +120,52 @@ app.put('/logs/:id', async (req, res) => {
   }
 })
 
+// C - CREATE - update our data store
 
+app.post('/logs', async (req, res) => {
+  if(req.body.shipIsBroken === 'on') { //if checked, req.body.shipIsBroken is set to 'on'
+      req.body.shipIsBroken = true;
+  } else {  //if not checked, req.body.shipIsBroken is undefined
+      req.body.shipIsBroken = false;
+  }
 
+  try {
+      const createdLog = await Log.create(req.body);
+      res.status(200).redirect('/logs');
+  } catch (err) {
+      res.status(400).send(err);
+  }
+})
 
-const dayjs = require('dayjs');
-// Create an instance of the express application
-const app = express();
+// E - EDIT - allow the user to provide the inputs to change the log
+app.get('/logs/:id/edit', async (req, res) => {
+  try {
+      const foundLog = await Log.findById(req.params.id);
+      console.log('foundLog');
+      console.log(foundLog)
+      res.status(200).render('logs/Edit', {log: foundLog});
+  } catch (err) {
+      res.status(400).send(err);
+  }
+})
 
-const log = require('./models/log');
+// S - SHOW - show route displays details of an individual log
+app.get('/logs/:id', async (req, res) => {
+  // res.send(logs[req.params.indexOfLogsArray]);
+  try {
+      const foundLog = await Log.findById(req.params.id);
+      res.render('logs/Show', {log: foundLog});
+  } catch (err) {
+      res.status(400).send(err);
+  }
 
+})
 
-
-  
 app.get('/current-time', (req, res) => {
-    const currentTime = dayjs().format('MMMM Do YYYY, h:mm:ss a');
-    res.render(`Current Time: ${currentTime}`);
+  const currentTime = dayjs().format('MMMM Do YYYY, h:mm:ss a');
+  res.render(`Current Time: ${currentTime}`);
 });
 
-
-// Configure body-parser
-app.use(bodyParser.urlencoded({ extended: true }));
-
-// Configure method-override
-app.use(methodOverride('_method'));
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Create a new logs model
-const Log = mongoose.model('Log', {
-    title: String,
-    entry: String,
-    shipIsBroken: { type: Boolean, default: true },
-    createdAt: { type: Date, default: Date.now }, 
-  });
-
-  // Express server
-  const port = 3000;
-  app.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
-  });
-
-
-// Update a log (Update in the database)
-app.put('/logs/:id', async (req, res) => {
-  try {
-      await Log.findByIdAndUpdate(req.params.id, { ...req.body, updatedAt: dayjs() }); 
-      res.redirect(`/logs/${req.params.id}`);
-    } catch (error) {
-      console.error(error);
-      res.send('Error updating log');
-    }
-  });
-
-
+app.listen(3000, () => {
+  console.log('listening');
+});
