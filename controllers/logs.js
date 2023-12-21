@@ -7,59 +7,87 @@ const Log = require('../models/logs');
 
 // Index Route
 router.get('/', async (req, res) => {
-  // Implement logic for getting all logs
-  res.send('Index route for logs');
-});
+    try {
+      const foundLogs = await Log.find({});
+      res.status(200).render('logs/Index', { logs: foundLogs });
+    } catch (err) {
+      res.status(400).send(err);
+    }
+  });
+
 
 // Show Route
-router.get('/:id', (req, res) => {
-  // Implement logic for getting a specific log
-  res.send(`Show route for log with id ${req.params.id}`);
-});
-
+router.get('/:id', async (req, res) => {
+    try {
+      const foundLog = await Log.findById(req.params.id);
+      res.render('logs/Show', { log: foundLog });
+    } catch (err) {
+      res.status(400).send(err);
+    }
+  });
 // New Route
 router.get('/new', (req, res) => {
-  // Implement logic for showing the new log form
-  res.send('New route for creating a new log');
-});
+    res.render('logs/New');
+  });
 
 // Create Route
-router.post('/', (req, res) => {
-  // Implement logic for creating a new log
-  res.send('Create route for creating a new log');
-});
+router.post('/', async (req, res) => {
+    if (req.body.shipIsBroken === 'on') {
+      req.body.shipIsBroken = true;
+    } else {
+      req.body.shipIsBroken = false;
+    }
+  
+    try {
+      const createdLog = await Log.create(req.body);
+      res.status(200).redirect('/logs');
+    } catch (err) {
+      res.status(400).send(err);
+    }
+  });
 
 // Edit Route
 router.get('/:id/edit', async (req, res) => {
     try {
-      const log = await Log.findById(req.params.id);
-      res.render('edit', { log }); // Adjust the path to your edit JSX file
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Internal Server Error');
+      const foundLog = await Log.findById(req.params.id);
+      console.log('foundLog');
+      console.log(foundLog);
+      res.status(200).render('logs/Edit', { log: foundLog });
+    } catch (err) {
+      res.status(400).send(err);
     }
   });
 
 // Update Route
 router.put('/:id', async (req, res) => {
+    if (req.body.readyToLog === 'on') {
+      req.body.readyToLog = true;
+    } else {
+      req.body.readyToLog = false;
+    }
+  
     try {
-      await Log.findByIdAndUpdate(req.params.id, req.body, { new: true });
-      res.redirect(`/logs/${req.params.id}`);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Internal Server Error');
+      const updatedLog = await Log.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        { new: true },
+      );
+      console.log(updatedLog);
+      res.status(200).redirect(`/logs/${req.params.id}`);
+    } catch (err) {
+      res.status(400).send(err);
     }
   });
 
 // Delete Route
 router.delete('/:id', async (req, res) => {
-    try {
-      await Log.findByIdAndRemove(req.params.id);
-      res.redirect('/logs');
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Internal Server Error');
-    }
-  });
+  try {
+    const deletedLog = await Log.findByIdAndDelete(req.params.id);
+    console.log(deletedLog);
+    res.status(200).redirect('/logs');
+  } catch (err) {
+    res.status(400).send(err);
+  }
+});
 
 module.exports = router;

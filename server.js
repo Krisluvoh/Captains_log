@@ -83,7 +83,7 @@ app.get('/logs/', async (req, res) => {
 
 
 // N - NEW - allows a user to input a new log
-app.get('/logs/new', (req, res) => {
+app.get('/logs/new',(req, res) => {
   res.render('logs/New');
 });
 
